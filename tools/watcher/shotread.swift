@@ -168,7 +168,7 @@ return out
 let final = clean(all)
 // Durance of Hate: white step lines, drawn half a tile higher than the wall base (directions 2 and 3 in the output)
 var stepAll = [String: Edge](), stepKept = Set<String>()
-if head.contains("DURANCE") {
+if head.contains("URANCE") || head.contains("HATE LEVEL") {   // a Battle.net badge can hide the first letters
     hU = Int((20 * S).rounded()); hD = Int((-12 * S).rounded())
     scan(pre[4], OX, OY, 1) { a, b, d, x, y, q in if q > 0.12 { stepAll["\(a),\(b),\(d)"] = Edge(a: a, b: b, d: d, x: x, y: y, q: q) } }
     stepKept = Set(clean(stepAll).map { "\($0.a),\($0.b),\($0.d)" })
