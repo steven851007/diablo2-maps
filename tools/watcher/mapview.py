@@ -8,7 +8,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 API = 'https://maps.diablo.deadlybossmods.com/api/render?seed={seed}&levels={levels}&difficulty={diff}'
 # title, level id, where you arrive ('wp' or the level you come from), level to reach
 AREAS = [('Durance 2 → Mephisto', '', 101, 'wp', 102), ('Worldstone 2 → 3', '', 129, 'wp', 130), ('Worldstone 3 → Baal', '', 130, 129, 131),
-         ('Catacombs 2 → 3', '', 35, 'wp', 36), ('Catacombs 3 → Andariel', '', 36, 35, 37), ('Halls of Vaught → Nihlathak', '', 124, 123, 'nihlathak')]
+         ('Catacombs 2 → 3', '', 35, 'wp', 36), ('Catacombs 3 → Andariel', '', 36, 35, 37), ('Halls of Pain → Vaught', 'Nihlathak', 123, 'wp', 124)]
 # Herald zones: key, title, names the game shows when the zone is terrorized, and per level:
 # title, level id, where you start, where to end (None = anywhere). Starts: 'wp', a level id (its stairs or border), 'any'.
 ZONES = [
@@ -166,7 +166,7 @@ def draw(l, frm, to):
     exits = {int(p['destLevelNo']): (int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'exit' and 'destLevelNo' in p}
     wp = next(((int(p['x']), int(p['y'])) for p in l['presets'] if p.get('kind') == 'Waypoint'), None)
     a, b = wp if frm == 'wp' else exits.get(frm), exits.get(to)
-    if to == 'nihlathak': b = next(((int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'npc' and p.get('txtFileNo') == 803), None)
+    if to == 'nihlathak': b = next(((int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'obj' and p.get('txtFileNo') == 462), None)   # "Nihlathak Start"
     if not a or not b: raise ValueError('start or exit missing')
     path = route(F, w, h, a, b); pts = [iso(*p) for p in path]
     body = []; allp = []

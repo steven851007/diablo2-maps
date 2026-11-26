@@ -151,5 +151,6 @@ static int durielTomb(uint32_t seed) {
 }
 // The Canyon of the Magi is always the same: entrances on screen from left to right are tombs 4 3 2 1 5 6 7.
 static int tombFromLeft(int lv) { static const int8_t P[7] = { 4, 3, 2, 1, 5, 6, 7 }; return P[lv - 66]; }
-// Halls of Vaught: the first roll of the level picks Nihlathak's arm (checked: 18 of 18 real maps).
-static int nihlathakArm(uint32_t seed) { static const uint8_t ARM[4] = { MW, MS, MN, ME }; Rng g = rng(startSeed(seed) + 124); return ARM[roll(&g) & 3]; }
+// Halls of Vaught: the first roll of the level picks Nihlathak's arm. He stands at the "Nihlathak Start" marker
+// (object 462); checked on 19 real maps and confirmed in a live game.
+static int nihlathakArm(uint32_t seed) { static const uint8_t ARM[4] = { ME, MN, MS, MW }; Rng g = rng(startSeed(seed) + 124); return ARM[roll(&g) & 3]; }

@@ -17,7 +17,7 @@ Type `n` + Enter for each new game (a town screenshot with a different exit does
 `python3 watch.py folder --replay` analyses existing screenshots.
 
 Phone: scan the QR code printed at the start (same Wi-Fi). Two tabs, updated by themselves:
-- Bosses: way to the exit in Durance 2, Worldstone 2 and 3, Catacombs 2 and 3, and to Nihlathak (`AREAS` in `mapview.py`).
+- Bosses: way to the exit in Durance 2, Worldstone 2 and 3, Catacombs 2 and 3, and Halls of Pain to the Halls of Vaught (`AREAS` in `mapview.py`).
 - Purple dots: shrines that can be any boost (`ANY_SHRINES`); health and mana spots are left out. White marks: Cairn Stones, Tree of Inifuss.
 - Gold boxes on every map: large chests (`SUPER_CHESTS`); the game files have no super chest flag.
 - Heralds: clearing routes for the terror zones in `ZONES`, loaded when tapped. The active terror zone is read from the
