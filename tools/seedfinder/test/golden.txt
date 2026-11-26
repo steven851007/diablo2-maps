@@ -210,3 +210,9 @@ nihlathak 799609893 N
 nihlathak 815623033 N
 nihlathak 895537341 N
 nihlathak 70715298 S
+# The other big tomb (most rooms after the orifice tomb), real 1.13c maps
+bigtomb 895537341 72
+bigtomb 1572506107 70
+bigtomb 209322321 71
+bigtomb 13973 68
+bigtomb 726659094 70

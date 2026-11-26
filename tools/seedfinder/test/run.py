@@ -10,9 +10,9 @@ for line in open(os.path.join(D, 'test', 'golden.txt')):
     if p[0] == 'town':
         got = run('describe', p[1]).split('town ')[1].split()[0]; town += 1
         if got != p[2]: bad.append(line.strip())
-    elif p[0] in ('summoner', 'tomb', 'nihlathak'):
+    elif p[0] in ('summoner', 'tomb', 'nihlathak', 'bigtomb'):
         got = json.loads(run('facts', p[1])); facts += 1
-        if str(got[{'summoner': 'summoner', 'tomb': 'tombLevel', 'nihlathak': 'nihlathak'}[p[0]]]) != p[2]: bad.append(line.strip())
+        if str(got[{'summoner': 'summoner', 'tomb': 'tombLevel', 'nihlathak': 'nihlathak', 'bigtomb': 'bigTombLevel'}[p[0]]]) != p[2]: bad.append(line.strip())
     elif p[0] == 'map':
         got = [tuple(map(int, x.split(','))) for x in run('dump', p[1], p[2], 2).split()]; want = sorted(tuple(map(int, x.split(','))) for x in p[4:])
         wp = [f'{g[0]},{g[1]}' for g in got if g[3] == 3]; maps += 1; rooms += len(want)

@@ -306,7 +306,7 @@ int main(int argc, char **argv) {
     if (argc >= 3 && !strcmp(argv[1], "describe")) return describe(argc, argv);
     if (argc >= 3 && !strcmp(argv[1], "facts")) {
         uint32_t s = (uint32_t)strtoul(argv[2], 0, 10); int t = durielTomb(s);
-        printf("{\"seed\":%u,\"town\":\"", s); dirs(townExit(s)); printf("\",\"summoner\":\""); dirs(summonerArm(s)); printf("\",\"nihlathak\":\""); dirs(nihlathakArm(s)); printf("\",\"tomb\":%d,\"tombLevel\":%d}\n", tombFromLeft(t), t); return 0;
+        printf("{\"seed\":%u,\"town\":\"", s); dirs(townExit(s)); printf("\",\"summoner\":\""); dirs(summonerArm(s)); printf("\",\"nihlathak\":\""); dirs(nihlathakArm(s)); int big; tombLevels(s, &big); printf("\",\"tomb\":%d,\"tombLevel\":%d,\"bigTomb\":%d,\"bigTombLevel\":%d}\n", tombFromLeft(t), t, tombFromLeft(big), big); return 0;
     }
     if (argc >= 4 && !strcmp(argv[1], "dump")) { Room r[MAXR]; Look v[MAXR]; int lv = atoi(argv[3]), df = argc > 4 ? atoi(argv[4]) : 2; uint32_t st = startSeed((uint32_t)strtoul(argv[2], 0, 10)); int L = hasLooks(lv), n = L ? genLooks(st, lv, df, r, v) : genLayout(st, lv, df, r, 0, 0), mx = 99, my = 99; for (int i = 0; i < n; i++) { if (r[i].x < mx) mx = r[i].x; if (r[i].y < my) my = r[i].y; } for (int i = 0; i < n; i++) printf("%d,%d,%d,%d,%d,%d\n", r[i].x - mx, r[i].y - my, r[i].mask, r[i].kind, L ? v[i].preset : 0, L ? v[i].file : 0); return n == 0; }
     if (argc >= 3 && !strcmp(argv[1], "solve")) {

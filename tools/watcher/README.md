@@ -20,7 +20,8 @@ Phone: scan the QR code printed at the start (same Wi-Fi). Two tabs, updated by 
 - Bosses: way to the exit in Durance 2, Worldstone 2 and 3, Catacombs 2 and 3, and Halls of Pain to the Halls of Vaught (`AREAS` in `mapview.py`).
 - Purple dots: shrines that can be any boost (`ANY_SHRINES`); health and mana spots are left out. White marks: Cairn Stones, Tree of Inifuss.
 - Gold boxes on every map: large chests (`SUPER_CHESTS`); the game files have no super chest flag.
-- Heralds: clearing routes for the terror zones in `ZONES`, loaded when tapped. The active terror zone is read from the
+- Heralds: clearing routes for the terror zones in `ZONES`, loaded when tapped. For the tombs only the Canyon,
+  Duriel's tomb (route ends at his entrance) and the other big tomb are shown. The active terror zone is read from the
   corner text of any screenshot taken outside it, marked with a star and loaded first. `REACH` is how far you clear.
 Read-only and plain http on the local address, so anybody in the same network can look at it. `--no-phone` turns it off.
 

@@ -143,12 +143,14 @@ static int summonerArm(uint32_t seed) {
     Rng g = rng(startSeed(seed) + 74); for (int i = 0; i < 62; i++) roll(&g);
     return ARM[roll(&g) & 3];
 }
-// Level id of the tomb with the orifice (Duriel), 66-72.
-static int durielTomb(uint32_t seed) {
+// Level ids of the tomb with the orifice (Duriel, three times the rooms) and the other big tomb (twice the rooms), 66-72.
+static int tombLevels(uint32_t seed, int *big) {
     Rng g = rng(seed); roll(&g); uint32_t a, b;
     do { a = roll(&g) % 7; b = roll(&g) % 7; } while (a == b);
+    if (big) *big = 66 + (int)b;
     return 66 + (int)a;
 }
+static int durielTomb(uint32_t seed) { return tombLevels(seed, 0); }
 // The Canyon of the Magi is always the same: entrances on screen from left to right are tombs 4 3 2 1 5 6 7.
 static int tombFromLeft(int lv) { static const int8_t P[7] = { 4, 3, 2, 1, 5, 6, 7 }; return P[lv - 66]; }
 // Halls of Vaught: the first roll of the level picks Nihlathak's arm. He stands at the "Nihlathak Start" marker

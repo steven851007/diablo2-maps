@@ -10,18 +10,18 @@ API = 'https://maps.diablo.deadlybossmods.com/api/render?seed={seed}&levels={lev
 AREAS = [('Durance 2 → Mephisto', '', 101, 'wp', 102), ('Worldstone 2 → 3', '', 129, 'wp', 130), ('Worldstone 3 → Baal', '', 130, 129, 131),
          ('Catacombs 2 → 3', '', 35, 'wp', 36), ('Catacombs 3 → Andariel', '', 36, 35, 37), ('Halls of Pain → Vaught', 'Nihlathak', 123, 'wp', 124)]
 # Herald zones: key, title, names the game shows when the zone is terrorized, and per level:
-# title, level id, where you start, where to end (None = anywhere). Starts: 'wp', a level id (its stairs or border), 'any'.
+# title, level id, where you start, where to end (None = anywhere, 'via X' = go to X first, then clear the rest), optional white labels ((name, place), ...). Starts: 'wp', a level id (its stairs or border), 'any'.
 ZONES = [
     ('tombs', 'Tombs + Canyon', ["Tal Rasha's Tombs", "Tal Rasha's Tomb", 'Canyon of the Magi'],
      [('Canyon of the Magi', 46, 'wp', None)] + [(f'Tomb {k} from the left', lv, 46, None) for k, lv in enumerate((69, 68, 67, 66, 70, 71, 72), 1)]),
     ('tunnels', 'Ancient Tunnels', ['Ancient Tunnels'], [('Lost City: to the Tunnels', 44, 'wp', 65), ('Ancient Tunnels', 65, 44, None)]),
     ('sewers', 'Sewers Act 2', ['Lut Gholein Sewers'], [('Sewers 2', 48, 'wp', 49), ('Sewers 3', 49, 48, None), ('Sewers 1', 47, 48, None)]),
-    ('tamoe', 'Tamoe + Pit', ['Tamoe Highland', 'The Pit', 'Pit'], [('Tamoe Highland', 7, 26, 12), ('Pit 1', 12, 7, 16), ('Pit 2', 16, 12, None)]),
-    ('marsh', 'Black Marsh', ['Black Marsh', 'The Hole'], [('Black Marsh', 6, 'wp', None)]),
+    ('tamoe', 'Tamoe + Pit', ['Tamoe Highland', 'The Pit', 'Pit'], [('Tamoe Highland', 7, 26, 12, (('Pit', 12),)), ('Pit 1', 12, 7, 16), ('Pit 2', 16, 12, None)]),
+    ('marsh', 'Black Marsh + Tower', ['Black Marsh', 'The Hole', 'Forgotten Tower', 'Tower'], [('Black Marsh', 6, 'wp', None, (('Tower', 20),))] + [(f'Tower Cellar {k}', 20 + k, 19 + k if k > 1 else 20, 21 + k, (('Down', 21 + k),)) for k in range(1, 5)]),
     ('darkwood', 'Dark Wood + Underground', ['Dark Wood', 'Underground Passage'], [('Dark Wood', 5, 'wp', 10), ('Underground Passage 1', 10, 5, 14), ('Underground Passage 2', 14, 10, None)]),
-    ('stony', 'Stony Field + Tristram', ['Stony Field', 'Tristram'], [('Stony Field', 4, 'wp', 'cairn'), ('Tristram', 38, 'any', None)]),
+    ('stony', 'Stony Field', ['Stony Field', 'Tristram'], [('Stony Field', 4, 'wp', 'via cairn')]),
     ('cold', 'Cold Plains', ['Cold Plains', 'The Cave'], [('Cold Plains', 3, 'wp', None)]),
-    ('burial', 'Burial Grounds', ['Burial Grounds', 'Crypt', 'The Crypt', 'Mausoleum', 'The Mausoleum'], [('Burial Grounds', 17, 3, 18), ('Crypt', 18, 17, None), ('Mausoleum', 19, 17, None)]),
+    ('burial', 'Crypt + Mausoleum', ['Burial Grounds', 'Crypt', 'The Crypt', 'Mausoleum', 'The Mausoleum'], [('Crypt', 18, 17, None), ('Mausoleum', 19, 17, None)]),
     ('moor', 'Blood Moor', ['Blood Moor', 'Den of Evil'], [('Blood Moor', 2, 1, None)]),
 ]
 PASS_ONLY = {44}
@@ -38,15 +38,18 @@ LANDMARKS = [('Cairn', {17, 18, 19, 20, 21, 22}), ('Tree', {30})]     # Cairn St
 def shrines(l): return [iso(int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'obj' and p.get('txtFileNo') in ANY_SHRINES]
 
 
-def landmark_marks(l, r):
-    out = []
+def landmark_marks(l, r, extra=()):
+    out = [label(u, v, name, r) for name, (u, v) in ((n, iso(*p)) for n, p in extra)]
     for name, ids in LANDMARKS:
         c = [(int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'obj' and p.get('txtFileNo') in ids]
         if not c: continue
-        u, v = iso(sum(x for x, _ in c) / len(c), sum(y for _, y in c) / len(c))
-        out.append(f'<path d="M{u:.0f} {v - .9*r:.0f}L{u + .9*r:.0f} {v:.0f}L{u:.0f} {v + .9*r:.0f}L{u - .9*r:.0f} {v:.0f}Z" fill="#fff" stroke="#111" stroke-width="{.2*r:.1f}"/>'
-                   f'<text x="{u:.0f}" y="{v - 1.3*r:.0f}" font-size="{1.3*r:.1f}" text-anchor="middle" fill="#fff" stroke="#111" stroke-width="{.35*r:.1f}" paint-order="stroke" font-family="sans-serif" font-weight="700">{name}</text>')
+        out.append(label(*iso(sum(x for x, _ in c) / len(c), sum(y for _, y in c) / len(c)), name, r))
     return ''.join(out)
+
+
+def label(u, v, name, r):
+    return (f'<path d="M{u:.0f} {v - .9*r:.0f}L{u + .9*r:.0f} {v:.0f}L{u:.0f} {v + .9*r:.0f}L{u - .9*r:.0f} {v:.0f}Z" fill="#fff" stroke="#111" stroke-width="{.2*r:.1f}"/>'
+                   f'<text x="{u:.0f}" y="{v - 1.3*r:.0f}" font-size="{1.3*r:.1f}" text-anchor="middle" fill="#fff" stroke="#111" stroke-width="{.35*r:.1f}" paint-order="stroke" font-family="sans-serif" font-weight="700">{name}</text>')
 
 
 def super_chests(l): return [(int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'obj' and p.get('txtFileNo') in SUPER_CHESTS]
@@ -189,9 +192,9 @@ def draw(l, frm, to):
     return {'route': svg((x0, y0, x1, y1)), 'full': svg(full), 'start': first_direction(path) or '', 'steps': len(path), 'info': chest_text(near)}
 
 
-def clear_route(F, w, h, a, b, ms=400):
+def clear_route(F, w, h, a, b, ms=400, via=None):
     """Walk that clears the level: (path, share of the floor, steps)."""
-    head = f'{w} {h} {REACH} {ms} {a[0]} {a[1]} {b[0] if b else -1} {b[1] if b else -1}\n'
+    head = f'{w} {h} {REACH} {ms} {a[0]} {a[1]} {b[0] if b else -1} {b[1] if b else -1}' + (f' {via[0]} {via[1]}' if via else '') + '\n'
     r = subprocess.run([os.path.join(HERE, 'clearroute')], input=head.encode() + bytes(F), capture_output=True, timeout=60)
     L = r.stdout.decode().split('\n')
     if r.returncode or len(L) < 3: raise ValueError('no route')
@@ -224,17 +227,19 @@ def place(l, F, w, h, spec):
     if spec == 'cairn':
         c = [(int(p['x']), int(p['y'])) for p in l['presets'] if str(p.get('name', '')).startswith('Stone') and p.get('displayName') == 'Cairn Stone' or str(p.get('name', '')) in ('StoneAlpha', 'StoneBeta', 'StoneGamma', 'StoneDelta', 'StoneLambda', 'StoneTheta')]
         return (sum(x for x, _ in c) // len(c), sum(y for _, y in c) // len(c)) if c else None
+    if spec == 'orifice': return next(((int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'obj' and p.get('txtFileNo') == 152), None)
     if spec == 'any': i = F.find(1, len(F) // 2); return (i % w, i // w) if i >= 0 else None
     ex = next(((int(p['x']), int(p['y'])) for p in l['presets'] if p.get('type') == 'exit' and p.get('destLevelNo') == spec), None)
     return ex or border(l, F, w, h, spec)
 
 
-def draw_clear(l, frm, to, free_start=False):
-    F, w, h = walkable(l); a, b = place(l, F, w, h, frm), place(l, F, w, h, to)
+def draw_clear(l, frm, to, free_start=False, labels=()):
+    F, w, h = walkable(l); via = place(l, F, w, h, to[4:]) if isinstance(to, str) and to.startswith('via ') else None
+    a, b = place(l, F, w, h, frm), None if via else place(l, F, w, h, to)
     if not a: raise ValueError('start missing')
     if frm == 'any':                        # start unknown: take the end of a route as the start of the final one
         p, _, _ = clear_route(F, w, h, a, None, 150); a = p[-1]
-    path, share, steps = clear_route(F, w, h, a, b); P = [iso(*p) for p in path]; n = len(P)
+    path, share, steps = clear_route(F, w, h, a, b, via=via); P = [iso(*p) for p in path]; n = len(P)
     P = [tuple(sum(q[k] for q in P[max(0, i - 1):i + 2]) / len(P[max(0, i - 1):i + 2]) for k in (0, 1)) for i in range(n)]
     body, allp = [], []
     for p in outline(F, w, h): q = [iso(*c) for c in p]; allp += q; body.append('M' + 'L'.join(f'{x} {y}' for x, y in q) + 'Z')
@@ -248,22 +253,33 @@ def draw_clear(l, frm, to, free_start=False):
     marks = max(3, min(10, n // 45))
     for k in range(1, marks + 1):
         x, y = P[min(n - 1, k * n // marks)]; out.append(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r:.1f}" fill="#111"/><text x="{x:.0f}" y="{y+.4*r:.0f}" font-size="{1.25*r:.1f}" text-anchor="middle" fill="#fff" font-family="sans-serif">{k}</text>')
-    cm, near = chest_marks(l, path, r); out.insert(1 + K, cm); out.append(landmark_marks(l, r))
+    cm, near = chest_marks(l, path, r); out.insert(1 + K, cm); out.append(landmark_marks(l, r, [(n, place(l, F, w, h, s)) for n, s in labels if place(l, F, w, h, s)]))
     x, y = P[0]; out.append(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r:.1f}" fill="#3c8cff" stroke="#fff" stroke-width="{.25*r:.1f}"/></svg>')
     info = ', '.join(x for x in (f'{steps} steps, {100*share:.0f}%', chest_text(near), 'start unknown' if frm == 'any' else '') if x)
     return {'route': ''.join(out), 'full': ''.join(out), 'start': first_direction(path, 15) or '', 'info': info, 'steps': steps}
 
 
-def build_zone(levels, zone):
+def zone_parts(zone, facts=None):
+    """(title, level, start, end, marks) per map. With the seed's facts the tombs zone keeps only the two big tombs."""
+    parts = [tuple(x) if len(x) == 5 else (*x, ()) for x in next(z for z in ZONES if z[0] == zone)[3]]
+    if zone == 'tombs' and facts and facts.get('bigTombLevel'):
+        nth = lambda n: ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][n]
+        parts = [('Canyon of the Magi', 46, 'wp', None, (('Duriel', facts['tombLevel']), ('Big tomb', facts['bigTombLevel']))),
+                 (f"Duriel's tomb ({nth(facts['tomb'])} from the left)", facts['tombLevel'], 46, 'orifice', (('Duriel', 'orifice'),)),
+                 (f"Big tomb ({nth(facts['bigTomb'])} from the left)", facts['bigTombLevel'], 46, None, ())]
+    return parts
+
+
+def build_zone(levels, zone, facts=None):
     out = []
-    for title, lv, frm, to in next(z for z in ZONES if z[0] == zone)[3]:
-        try: d = draw(levels[lv], frm, to) if lv in PASS_ONLY else draw_clear(levels[lv], frm, to)
+    for title, lv, frm, to, marks in zone_parts(zone, facts):
+        try: d = draw(levels[lv], frm, to) if lv in PASS_ONLY else draw_clear(levels[lv], frm, to, labels=marks)
         except (KeyError, ValueError, TypeError, zlib.error, OSError, subprocess.SubprocessError): continue
         out.append({'title': title, 'note': '', 'level': lv, **d})
     return out
 
 
-def zone_levels(zone): return [x[1] for x in next(z for z in ZONES if z[0] == zone)[3]]
+def zone_levels(zone, facts=None): return [x[1] for x in zone_parts(zone, facts)]
 
 
 def terror_zones(lines):

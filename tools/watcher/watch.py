@@ -151,9 +151,7 @@ class Session:
                 if self.found != seed or DIFF[self.diff] != diff: continue
                 if what == 'boss': areas = mapview.build(mapview.fetch(seed, diff))
                 else:
-                    areas = mapview.build_zone(mapview.fetch(seed, diff, levels=mapview.zone_levels(what)), what)
-                    for a in areas:
-                        if a['level'] == self.facts.get('tombLevel'): a['note'] = 'Duriel'
+                    areas = mapview.build_zone(mapview.fetch(seed, diff, levels=mapview.zone_levels(what, self.facts)), what, self.facts)
                 if not areas: raise ValueError('nothing drawn')
                 self.areas[(seed, diff) if what == 'boss' else key] = areas
                 if what != 'boss': self.phone.set_zone(seed, what, 'ready', areas)

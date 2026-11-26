@@ -1,5 +1,6 @@
 // clearroute: a short walk that passes close to all reachable floor of one level.
-// stdin: "w h reach budget_ms sx sy ex ey\n" then w*h bytes (1 = walkable). ex < 0: end anywhere.
+// stdin: "w h reach budget_ms sx sy ex ey [vx vy]\n" then w*h bytes (1 = walkable). ex < 0: end anywhere.
+// vx vy: a point the walk goes to first (then clears the rest).
 // stdout: "covered steps points\n" then one "x y" per line.
 // Floor is cut into 4x4 cells. A cell counts as cleared when the walk comes within `reach` steps of it (around walls).
 #include <math.h>
@@ -23,7 +24,7 @@ static void dist(int s, int *d, int *prev, int lim, int *order, int *cnt) {
         bn[b] = 0; }
     if (cnt) *cnt = c;
 }
-static int n, P[MAXP], *D[MAXP], *PV[MAXP], T[MAXP], hasEnd;
+static int n, P[MAXP], *D[MAXP], *PV[MAXP], T[MAXP], hasEnd, F0 = 1;   // F0: tour positions before it stay fixed
 static int dd(int a, int b) { return D[a][P[b]]; }
 static int len(const int *t) { int s = 0; for (int i = 1; i < n; i++) s += dd(t[i - 1], t[i]); return s; }
 static void improve(int *t) {
@@ -31,13 +32,14 @@ static void improve(int *t) {
     while (go) {
         go = 0;
         for (int i = 1; i < top - 1; i++) for (int j = i + 1; j < top; j++) {                 // reverse i..j
+            if (i < F0) continue;
             int o = dd(t[i - 1], t[i]) + (j + 1 < n ? dd(t[j], t[j + 1]) : 0), m = dd(t[i - 1], t[j]) + (j + 1 < n ? dd(t[i], t[j + 1]) : 0);
             if (m < o) { for (int a = i, b = j; a < b; a++, b--) { int q = t[a]; t[a] = t[b]; t[b] = q; } go = 1; }
         }
-        for (int m = 1; m <= 3; m++) for (int i = 1; i + m <= top; i++) {                      // move i..i+m-1 elsewhere
+        for (int m = 1; m <= 3; m++) for (int i = F0; i + m <= top; i++) {                     // move i..i+m-1 elsewhere
             int a = t[i], b = t[i + m - 1], nx = i + m < n ? t[i + m] : -1, gain = dd(t[i - 1], a) + (nx >= 0 ? dd(b, nx) - dd(t[i - 1], nx) : 0), best = 0, at = -1, rev = 0;
             for (int k = 0; k < top; k++) {                  // insert after position k
-                if (k >= i - 1 && k < i + m) continue;
+                if ((k >= i - 1 && k < i + m) || k < F0 - 1) continue;
                 int p = t[k], q = k + 1 < n ? t[k + 1] : -1; int c0 = dd(p, a) + (q >= 0 ? dd(b, q) - dd(p, q) : 0), c1 = dd(p, b) + (q >= 0 ? dd(a, q) - dd(p, q) : 0);
                 if (gain - c0 > best) { best = gain - c0; at = k; rev = 0; } if (gain - c1 > best) { best = gain - c1; at = k; rev = 1; }
             }
@@ -50,8 +52,8 @@ static void improve(int *t) {
 }
 static void search(double until) {
     int best[MAXP], cur[MAXP]; improve(T); memcpy(best, T, sizeof best); int bl = len(T), top = hasEnd ? n - 1 : n;
-    while (now() < until && top > 8) {                       // double bridge, then improve again
-        memcpy(cur, best, sizeof cur); int a = 1 + rnd() % (top - 3), b = 1 + rnd() % (top - 3), c = 1 + rnd() % (top - 3), x;
+    while (now() < until && top > F0 + 7) {                  // double bridge, then improve again
+        memcpy(cur, best, sizeof cur); int a = F0 + rnd() % (top - F0 - 2), b = F0 + rnd() % (top - F0 - 2), c = F0 + rnd() % (top - F0 - 2), x;
         if (a > b) { x = a; a = b; b = x; } if (b > c) { x = b; b = c; c = x; } if (a > b) { x = a; a = b; b = x; }
         int z = a, u[MAXP]; memcpy(u, cur, sizeof u); for (int k = b; k < c; k++) u[z++] = cur[k]; for (int k = a; k < b; k++) u[z++] = cur[k];
         improve(u); int l = len(u); if (l < bl) { bl = l; memcpy(best, u, sizeof best); }
@@ -66,7 +68,8 @@ static void makePath(void) {
 static void countHits(void) { memset(hits, 0, sizeof(int) * N); for (int i = 0; i < pn; i += i + 2 < pn || i == pn - 1 ? 2 : 1) for (int k = nearOff[path[i]]; k < nearOff[path[i] + 1]; k++) hits[nearList[k]]++; }
 static double covered(void) { double s = 0, t = 0; for (int i = 0; i < N; i++) { t += wt[i]; if (hits[i]) s += wt[i]; } return t ? s / t : 0; }
 int main(void) {
-    int sx, sy, ex, ey, ms; if (scanf("%d %d %d %d %d %d %d %d", &w, &h, &reach, &ms, &sx, &sy, &ex, &ey) != 8 || getchar() != '\n' || w < 8 || h < 8 || w > 4000 || h > 4000) return 2;
+    int sx, sy, ex, ey, ms, vx = -1, vy = -1; char line[256];
+    if (!fgets(line, sizeof line, stdin) || sscanf(line, "%d %d %d %d %d %d %d %d %d %d", &w, &h, &reach, &ms, &sx, &sy, &ex, &ey, &vx, &vy) < 8 || w < 8 || h < 8 || w > 4000 || h > 4000) return 2;
     F = malloc((size_t)w * h); if (!F || fread(F, 1, (size_t)w * h, stdin) != (size_t)w * h) return 2;
     W = w / Q; H = h / Q;
     // floor that can really be reached
@@ -104,7 +107,8 @@ int main(void) {
     uint8_t *done = calloc(N, 1); int *gain = malloc(4 * N); double total = 0, left; for (int i = 0; i < N; i++) total += wt[i]; left = total;
     for (int i = 0; i < N; i++) { gain[i] = 0; for (int k = nearOff[i]; k < nearOff[i + 1]; k++) gain[i] += wt[nearList[k]]; }
     int endCell = -1; if (ex >= 0) { bd = 1 << 30; for (int i = 0; i < N; i++) { int x = cx[i] * Q + 2 - ex, y = cy[i] * Q + 2 - ey; if (x * x + y * y < bd) { bd = x * x + y * y; endCell = i; } } if (bd > 900 || !endCell) endCell = -1; }
-    P[n++] = 0; if (endCell > 0) { P[n++] = endCell; hasEnd = 1; }
+    int viaCell = -1; if (vx >= 0) { bd = 1 << 30; for (int i = 0; i < N; i++) { int x = cx[i] * Q + 2 - vx, y = cy[i] * Q + 2 - vy; if (x * x + y * y < bd) { bd = x * x + y * y; viaCell = i; } } if (bd > 900 || !viaCell || viaCell == endCell) viaCell = -1; }
+    P[n++] = 0; if (viaCell > 0) P[n++] = viaCell; if (endCell > 0) { P[n++] = endCell; hasEnd = 1; }
     for (int i = 0; i < n; i++) for (int k = nearOff[P[i]]; k < nearOff[P[i] + 1]; k++) if (!done[nearList[k]]) { done[nearList[k]] = 1; left -= wt[nearList[k]]; }
     while (n < MAXP - 1 && left > 0.01 * total) {
         int b = -1, bg = 0; for (int i = 0; i < N; i++) if (gain[i] > bg) { int g = 0; for (int k = nearOff[i]; k < nearOff[i + 1]; k++) if (!done[nearList[k]]) g += wt[nearList[k]]; gain[i] = g; if (g > bg) { bg = g; b = i; } }
@@ -113,13 +117,14 @@ int main(void) {
     }
     for (int i = 0; i < n; i++) { D[i] = malloc(4 * N); PV[i] = malloc(4 * N); for (int k = 0; k < N; k++) D[i][k] = 1 << 29; dist(P[i], D[i], PV[i], 1 << 28, 0, 0); }
     // nearest neighbour, then local search
-    uint8_t usedp[MAXP] = { 0 }; T[0] = 0; usedp[0] = 1; int lastPos = hasEnd ? n - 1 : n; if (hasEnd) { T[n - 1] = 1; usedp[1] = 1; }
-    for (int i = 1; i < lastPos; i++) { int b = -1; for (int j = 0; j < n; j++) if (!usedp[j] && (b < 0 || dd(T[i - 1], j) < dd(T[i - 1], b))) b = j; T[i] = b; usedp[b] = 1; }
+    uint8_t usedp[MAXP] = { 0 }; T[0] = 0; usedp[0] = 1; int lastPos = hasEnd ? n - 1 : n; if (hasEnd) { T[n - 1] = viaCell > 0 ? 2 : 1; usedp[T[n - 1]] = 1; }
+    if (viaCell > 0) { T[1] = 1; usedp[1] = 1; F0 = 2; }
+    for (int i = F0; i < lastPos; i++) { int b = -1; for (int j = 0; j < n; j++) if (!usedp[j] && (b < 0 || dd(T[i - 1], j) < dd(T[i - 1], b))) b = j; T[i] = b; usedp[b] = 1; }
     double t0 = now(), bud = ms / 1000.0; search(t0 + bud * 0.4);
     path = malloc(sizeof(int) * ((size_t)N * 4 + 1000) * 4); hits = malloc(4 * N); size_t capPath = ((size_t)N * 4 + 1000) * 4; long tot = len(T) / 5 + n; if ((size_t)tot + 10 > capPath) { path = realloc(path, sizeof(int) * (tot + 1000)); }
     // drop points whose floor the rest of the walk clears anyway
     makePath(); countHits(); double base = covered();
-    for (int pass = 0; pass < 3; pass++) for (int i = n - 1 - hasEnd; i >= 1; i--) {
+    for (int pass = 0; pass < 3; pass++) for (int i = n - 1 - hasEnd; i >= F0; i--) {
         int keep[MAXP], old = n, save = len(T); memcpy(keep, T, sizeof keep);
         memmove(T + i, T + i + 1, sizeof(int) * (n - i - 1)); n--; int l = len(T);
         if (l >= save) { memcpy(T, keep, sizeof keep); n = old; continue; }
