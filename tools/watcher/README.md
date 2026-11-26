@@ -9,7 +9,7 @@ Watches the screenshot folder and finds the seed of the current D2R game.
 1. Use a waypoint: Jail 1, Catacombs 2, Sewers 2 (Act 2), Durance 2; Halls of the Dead 2 as an extra.
 2. Walk into the next room and look into its neighbours, automap full screen, default zoom.
 3. Press Cmd+Shift+3 while the waypoint room is still visible on the automap.
-4. From the third stop on it searches (a new screenshot interrupts a search) and prints the seed, the Summoner arm and Duriel's tomb (1-7 from the left in the Canyon of the Magi)
+4. From the third stop on it searches (a new screenshot interrupts a search) and prints the seed, the Summoner's arm, Nihlathak's arm (top, right, bottom, left) and Duriel's tomb (1-7 from the left in the Canyon of the Magi)
    and opens the map page in the background. With --voice it reads them out; `s` repeats them.
 
 Type `n` + Enter for each new game (a town screenshot with a different exit does it by itself).

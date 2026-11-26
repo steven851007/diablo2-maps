@@ -45,7 +45,7 @@ Output is one line of JSON:
 
     {"matches":1,"exact":1,"seeds":[895537341],"wrongClues":[0],"mode":"table","tested":...,"ms":...}
 
-`facts <seed>` prints the Summoner arm and Duriel's tomb (counted from the left in the Canyon of the Magi).
+`facts <seed>` prints JSON with the town exit, the Summoner's and Nihlathak's arms, Duriel's tomb and the other big tomb (counted from the left in the Canyon of the Magi).
 `describe <seed>` prints the clues a player would see, in the same format.
 
 ## Accuracy
