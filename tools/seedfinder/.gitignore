@@ -1,0 +1,3 @@
+seedfinder
+data/
+!test/*.txt

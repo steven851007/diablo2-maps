@@ -1,0 +1,19 @@
+# Read by hand from screenshots of a live Hell game (seed 895537341). Partial facts only.
+difficulty hell
+stop catacombs2
+room 0,0 exits=E
+room 1,0 exits=WES
+room 1,1 open=NES
+stop sewers2
+room 0,0 exits=E
+room 1,0 exits=WE
+room 2,0 exits=WES
+room 2,1 exits=NS
+stop jail1
+room 0,0 exits=N
+room 0,-1 exits=WNES
+room -1,-1 open=NE closed=W
+stop durance2
+room 0,0 exits=E
+room 1,0 exits=WNE
+room 2,0 exits=WN
